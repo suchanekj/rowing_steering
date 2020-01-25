@@ -543,4 +543,92 @@ Wire Wire Line
 	5600 4050 5200 4050
 Text Label 5200 4050 0    50   ~ 0
 servo
+Wire Wire Line
+	3650 3050 4350 3050
+Wire Wire Line
+	3650 3150 4150 3150
+Wire Wire Line
+	4150 3150 4150 2950
+Wire Wire Line
+	4350 2950 4350 3050
+Connection ~ 4350 3050
+Wire Wire Line
+	4350 3050 4350 3250
+Wire Wire Line
+	4150 3150 4150 3250
+Connection ~ 4150 3150
+$Comp
+L Device:R R?
+U 1 1 5E2A01F0
+P 4150 3400
+F 0 "R?" V 3943 3400 50  0000 C CNN
+F 1 "R" V 4034 3400 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder" V 4080 3400 50  0001 C CNN
+F 3 "~" H 4150 3400 50  0001 C CNN
+	1    4150 3400
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5E2A0DFC
+P 4350 3400
+F 0 "R?" V 4143 3400 50  0000 C CNN
+F 1 "R" V 4234 3400 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder" V 4280 3400 50  0001 C CNN
+F 3 "~" H 4350 3400 50  0001 C CNN
+	1    4350 3400
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5E2A1065
+P 4350 2800
+F 0 "R?" V 4143 2800 50  0000 C CNN
+F 1 "R" V 4234 2800 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder" V 4280 2800 50  0001 C CNN
+F 3 "~" H 4350 2800 50  0001 C CNN
+	1    4350 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5E2A14A0
+P 4150 2800
+F 0 "R?" V 3943 2800 50  0000 C CNN
+F 1 "R" V 4034 2800 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.42x1.75mm_HandSolder" V 4080 2800 50  0001 C CNN
+F 3 "~" H 4150 2800 50  0001 C CNN
+	1    4150 2800
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4150 3550 4150 3650
+Wire Wire Line
+	4150 3650 4250 3650
+Wire Wire Line
+	4350 3650 4350 3550
+Wire Wire Line
+	4250 3650 4250 3750
+Connection ~ 4250 3650
+Wire Wire Line
+	4250 3650 4350 3650
+Wire Wire Line
+	4150 2650 4150 2550
+Wire Wire Line
+	4350 2650 4350 2550
+Text Label 4350 2550 0    50   ~ 0
+big_VCC_switched
+$Comp
+L power:VCC #PWR?
+U 1 1 5E2AA740
+P 4150 2550
+F 0 "#PWR?" H 4150 2400 50  0001 C CNN
+F 1 "VCC" H 4167 2723 50  0000 C CNN
+F 2 "" H 4150 2550 50  0001 C CNN
+F 3 "" H 4150 2550 50  0001 C CNN
+	1    4150 2550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4350 2550 5000 2550
 $EndSCHEMATC

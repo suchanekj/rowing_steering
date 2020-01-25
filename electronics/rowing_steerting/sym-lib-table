@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name servo_control_board-rescue)(type Legacy)(uri ${KIPRJMOD}/servo_control_board-rescue.lib)(options "")(descr ""))
+)
