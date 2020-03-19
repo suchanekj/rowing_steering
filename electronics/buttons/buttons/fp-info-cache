@@ -1,4 +1,18 @@
-16939476514418942
+16944234930922010
+1_Project_Specific
+NANO_33_Footprint_SMD_Castell
+Through hole straight socket strip, 1x15, 2.54mm pitch
+Through hole socket strip THT 1x15 2.54mm single row
+0
+30
+30
+1_Project_Specific
+TX30_vertical
+
+
+0
+2
+2
 Battery
 BatteryHolder_Bulgin_BX0036_1xC
 Bulgin Battery Holder, BX0036, Battery Type C (https://www.bulgin.com/products/pub/media/bulgin/data/Battery_holders.pdf)
@@ -2344,6 +2358,13 @@ Gauge Massstab 100mm SilkScreenTop Type 2
 0
 0
 0
+CanSat
+NANO_33_Footprint_SMD_Castell
+Through hole straight socket strip, 1x15, 2.54mm pitch
+Through hole socket strip THT 1x15 2.54mm single row
+0
+30
+30
 CanSat
 TX30_vertical
 
