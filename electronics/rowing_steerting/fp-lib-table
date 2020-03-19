@@ -1,3 +1,3 @@
 (fp_lib_table
-  (lib (name CanSat)(type KiCad)(uri D:/suchanek/programming/rowing_steering/electronics/libraries/CanSat.pretty)(options "")(descr ""))
+  (lib (name CanSat)(type KiCad)(uri ${KIPRJMOD}/libraries/CanSat.pretty)(options "")(descr ""))
 )

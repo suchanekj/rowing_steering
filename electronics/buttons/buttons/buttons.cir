@@ -1,0 +1,16 @@
+.title KiCad schematic
+A1 NC_01 NC_02 NC_03 GND Net-_A1-Pad5_ Net-_A1-Pad6_ Net-_A1-Pad7_ NC_04 NC_05 NC_06 NC_07 NC_08 NC_09 NC_10 NC_11 NC_12 NC_13 NC_14 Net-_A1-Pad19_ Net-_A1-Pad20_ Net-_A1-Pad21_ NC_15 NC_16 NC_17 NC_18 NC_19 +5V NC_20 GND Net-_A1-Pad30_ Arduino_Nano_v3.x
+D3 GND Net-_D3-Pad2_ LED
+D2 GND Net-_D2-Pad2_ LED
+D1 GND Net-_D1-Pad2_ LED
+R3 Net-_D3-Pad2_ Net-_A1-Pad7_ R
+R2 Net-_D2-Pad2_ Net-_A1-Pad6_ R
+R1 Net-_D1-Pad2_ Net-_A1-Pad5_ R
+R4 +5V Net-_J2-Pad3_ R
+J2 GND Net-_A1-Pad20_ Net-_J2-Pad3_ Conn_01x03_Male
+R5 +5V Net-_J3-Pad3_ R
+J3 GND Net-_A1-Pad21_ Net-_J3-Pad3_ Conn_01x03_Male
+J1 GND Net-_A1-Pad30_ NC_21 Conn_01x03_Male
+R7 Net-_A1-Pad19_ GND R
+R6 Net-_A1-Pad30_ Net-_A1-Pad19_ R
+.end
