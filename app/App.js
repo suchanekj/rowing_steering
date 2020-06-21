@@ -1,36 +1,64 @@
-import * as React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import * as React from "react";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { ThemeProvider } from "react-native-elements";
+import { Icon } from "react-native-elements";
 
-const instructions = Platform.select({
-  ios: `Press Cmd+R to reload,\nCmd+D or shake for dev menu`,
-  android: `Double tap R on your keyboard to reload,\nShake or press menu button for dev menu`,
-});
+import { Settings, Start, History } from "./src/screens";
+import { theme } from "./src/utils";
+
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcome}>Welcome to React Native!</Text>
-      <Text style={styles.instructions}>To get started, edit App.js</Text>
-      <Text style={styles.instructions}>{instructions}</Text>
-    </View>
+    <ThemeProvider theme={theme}>
+      <NavigationContainer>
+        <Tab.Navigator
+          initialRouteName="Start"
+          tabBarOptions={{
+            activeTintColor: theme.colors.actionable,
+            labelPosition: "beside-icon",
+          }}
+        >
+          <Tab.Screen
+            name="Settings"
+            component={Settings}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Icon
+                  name="settings"
+                  type="material"
+                  color={color}
+                  size={size}
+                />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Start"
+            component={Start}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Icon name="rowing" type="material" color={color} size={size} />
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="History"
+            component={History}
+            options={{
+              tabBarIcon: ({ color, size }) => (
+                <Icon
+                  name="history"
+                  type="material"
+                  color={color}
+                  size={size}
+                />
+              ),
+            }}
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
