@@ -340,9 +340,6 @@ F 3 "~" H 5950 2450 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	4650 2100 5950 2100
-Connection ~ 4650 2100
-Wire Wire Line
-	4650 2100 4650 1850
 Wire Wire Line
 	4950 2350 5350 2350
 Wire Wire Line
@@ -369,16 +366,21 @@ Wire Wire Line
 Connection ~ 5950 2650
 Wire Wire Line
 	5950 2650 5950 2700
-Text Label 4500 2050 2    50   ~ 0
-Balance_Lead
-Wire Wire Line
-	4550 1850 4550 2050
-Wire Wire Line
-	4550 2050 4500 2050
 Wire Wire Line
 	2600 3450 3000 3450
 Wire Wire Line
 	2600 3950 3100 3950
 Wire Wire Line
 	2600 2950 4250 2950
+Text Label 3950 2050 0    50   ~ 0
+Balance_Lead
+Wire Wire Line
+	4550 2100 4650 2100
+Connection ~ 4650 2100
+Wire Wire Line
+	4650 1850 4650 2050
+Wire Wire Line
+	4550 1850 4550 2100
+Wire Wire Line
+	3950 2050 4650 2050
 $EndSCHEMATC
