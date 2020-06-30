@@ -1,45 +1,42 @@
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { ThemeProvider } from "react-native-elements";
-import { Icon } from "react-native-elements";
+import { createMaterialBottomTabNavigator } from "@react-navigation/material-bottom-tabs";
+import { Provider as ThemeProvider } from "react-native-paper";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-import { Settings, Start, History } from "./src/screens";
+import { Settings, Row, History } from "./src/screens";
 import { theme } from "./src/utils";
 
-const Tab = createBottomTabNavigator();
+const Tab = createMaterialBottomTabNavigator();
 
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <NavigationContainer>
         <Tab.Navigator
-          initialRouteName="Start"
-          tabBarOptions={{
-            activeTintColor: theme.colors.actionable,
-            labelPosition: "beside-icon",
-          }}
+          initialRouteName="Row"
+          shifting={true}
+          backBehavior="initialRoute"
         >
           <Tab.Screen
             name="Settings"
             component={Settings}
             options={{
-              tabBarIcon: ({ color, size }) => (
-                <Icon
+              tabBarIcon: ({ color }) => (
+                <MaterialCommunityIcons
                   name="settings"
-                  type="material"
                   color={color}
-                  size={size}
+                  size={26}
                 />
               ),
             }}
           />
           <Tab.Screen
-            name="Start"
-            component={Start}
+            name="Row"
+            component={Row}
             options={{
-              tabBarIcon: ({ color, size }) => (
-                <Icon name="rowing" type="material" color={color} size={size} />
+              tabBarIcon: ({ color }) => (
+                <MaterialCommunityIcons name="rowing" color={color} size={26} />
               ),
             }}
           />
@@ -47,12 +44,11 @@ export default function App() {
             name="History"
             component={History}
             options={{
-              tabBarIcon: ({ color, size }) => (
-                <Icon
+              tabBarIcon: ({ color }) => (
+                <MaterialCommunityIcons
                   name="history"
-                  type="material"
                   color={color}
-                  size={size}
+                  size={26}
                 />
               ),
             }}
