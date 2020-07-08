@@ -1,23 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Linking, Platform } from "react-native";
 import { FAB, Banner } from "react-native-paper";
-import MapView from "react-native-maps";
+import MapView, { Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-community/async-storage";
 
 export default function Start() {
   const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [initialRegion, setInitialRegion] = useState(null);
   const [locationBuffer, setLocationBuffer] = useState([]);
   const [headingBuffer, setHeadingBuffer] = useState([]);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [subscriptions, setSubscriptions] = useState([]);
+
+  const map = useRef(null);
 
   useEffect(() => {
     // Ask for permissions on component mount
     async function requestLocationPermission() {
       const { status } = await Location.requestPermissionsAsync();
       setPermissionGranted(status === "granted");
+      const initialLocation = await Location.getLastKnownPositionAsync();
+      setInitialRegion({
+        latitude: initialLocation.coords.latitude,
+        longitude: initialLocation.coords.longitude,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+      });
     }
     requestLocationPermission();
   }, []);
@@ -53,7 +63,13 @@ export default function Start() {
     // Save location data as an outing and reset locationBuffer
     async function storeOuting() {
       try {
-        const jsonValue = JSON.stringify(locationBuffer);
+        const jsonValue = JSON.stringify({
+          date: locationBuffer[0].timestamp,
+          location: (
+            await Location.reverseGeocodeAsync(locationBuffer[0].coords)
+          )[0],
+          path: locationBuffer,
+        });
         const key = (await AsyncStorage.getAllKeys()).length++;
         await AsyncStorage.setItem(key.toString(), jsonValue);
         setLocationBuffer([]); // Reset location buffer
@@ -66,6 +82,19 @@ export default function Start() {
       storeOuting();
     }
   }, [isStarted]);
+
+  useEffect(() => {
+    // Fit map to coordinates every 30 location updates
+    if (locationBuffer.length % 30 === 0 && locationBuffer.length > 0) {
+      map.current.fitToCoordinates(
+        [locationBuffer[0], locationBuffer[locationBuffer.length - 1]],
+        {
+          animated: true,
+          edgePadding: { top: 0.005, right: 0.005, bottom: 0.005, left: 0.005 },
+        }
+      );
+    }
+  }, [locationBuffer]);
 
   return (
     <>
@@ -88,15 +117,22 @@ export default function Start() {
       >
         You must enable location permissions for this app to work.
       </Banner>
-      <MapView
-        style={{ flex: 3 }}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-      />
+      {initialRegion ? (
+        <MapView
+          ref={map}
+          style={{ flex: 3 }}
+          initialRegion={initialRegion}
+          showsUserLocation={true}
+        >
+          {locationBuffer.length > 0 ? (
+            <Polyline
+              coordinates={locationBuffer.map((location) => location.coords)}
+              strokeColor="#e30000"
+              strokeWidth={6}
+            />
+          ) : null}
+        </MapView>
+      ) : null}
       <View
         style={{
           position: "absolute",
