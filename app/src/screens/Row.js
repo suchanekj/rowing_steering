@@ -1,9 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Linking, Platform } from "react-native";
-import { FAB, Banner } from "react-native-paper";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import {
+  View,
+  Linking,
+  Platform,
+  NativeModules,
+  NativeEventEmitter,
+} from "react-native";
+import { FAB, Banner, Snackbar } from "react-native-paper";
 import MapView, { Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-community/async-storage";
+import BLEManager from "react-native-ble-manager";
+
+import { SettingsContext } from "../utils";
+
+const BleManagerModule = NativeModules.BleManager;
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default function Start() {
   const [isStarted, setIsStarted] = useState(false);
@@ -13,8 +25,12 @@ export default function Start() {
   const [headingBuffer, setHeadingBuffer] = useState([]);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [subscriptions, setSubscriptions] = useState([]);
+  const [error, setError] = useState({ status: false, message: "" });
+  const [rudderAngle, setRudderAngle] = useState(90);
 
   const map = useRef(null);
+
+  const { settings } = useContext(SettingsContext);
 
   useEffect(() => {
     // Ask for permissions on component mount
@@ -59,6 +75,37 @@ export default function Start() {
     }
   }, [isStarted, isPaused]);
 
+  function handleControllerUpdate({
+    value,
+    peripheralID,
+    characteristic,
+    service,
+  }) {
+    // Handle rudder change update
+    if (characteristic === RUDDER_CHANGE_CHARACTERISTIC) {
+      const data = Buffer.Buffer.from(value).readInt8;
+      let newRudderAngle = null;
+      if (data === 1) {
+        // Move rudder right
+        newRudderAngle = rudderAngle + 1;
+      } else {
+        // Move rudder left
+        newRudderAngle = rudderAngle - 1;
+      }
+      if (newRudderAngle && newRudderAngle >= 0 && newRudderAngle <= 180) {
+        setRudderAngle(newRudderAngle);
+        BLEManager.write(
+          settings.servo.id,
+          SERVO_SERVICE,
+          RUDDER_ANGLE_CHARACTERISTIC,
+          new Int8Array([newRudderAngle])
+        );
+      }
+    }
+
+    // Handle servo characteristic updates here
+  }
+
   useEffect(() => {
     // Save location data as an outing and reset locationBuffer
     async function storeOuting() {
@@ -80,6 +127,32 @@ export default function Start() {
     }
     if (!isStarted && locationBuffer.length > 0) {
       storeOuting();
+    }
+
+    // Start collecting readings from controller and sending data to servo
+    async function startControl() {
+      await BLEManager.startNotification(
+        settings.controller.id,
+        CONTROLLER_SERVICE,
+        RUDDER_CHANGE_CHARACTERISTIC
+      );
+      bleManagerEmitter.addListener(
+        "BleManagerDidUpdateValueForCharacteristic",
+        handleControllerUpdate
+      );
+    }
+    if (isStarted && settings.mode === "manual") {
+      try {
+        startControl();
+        return async () =>
+          BLEManager.stopNotification(
+            settings.controller.id,
+            CONTROLLER_SERVICE,
+            RUDDER_CHANGE_CHARACTERISTIC
+          );
+      } catch {
+        setError({ status: true, message: "Error: cannot start controller" });
+      }
     }
   }, [isStarted]);
 
@@ -162,6 +235,13 @@ export default function Start() {
           }}
         />
       </View>
+      <Snackbar
+        duration={2000}
+        visible={error.status}
+        onDismiss={() => setError({ status: false, message: "" })}
+      >
+        {error.message}
+      </Snackbar>
     </>
   );
 }
