@@ -6,7 +6,14 @@ import {
   NativeModules,
   NativeEventEmitter,
 } from "react-native";
-import { FAB, Banner, Snackbar } from "react-native-paper";
+import {
+  FAB,
+  Banner,
+  Snackbar,
+  Card,
+  Title,
+  Paragraph,
+} from "react-native-paper";
 import MapView, { Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-community/async-storage";
@@ -14,8 +21,8 @@ import BLEManager from "react-native-ble-manager";
 
 import { SettingsContext } from "../utils";
 
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+// const BleManagerModule = NativeModules.BleManager;
+// const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default function Start() {
   const [isStarted, setIsStarted] = useState(false);
@@ -209,31 +216,56 @@ export default function Start() {
       <View
         style={{
           position: "absolute",
+          flex: 1,
+          flexDirection: "row",
+          alignItems: "flex-end",
+          justifyContent: "flex-end",
           margin: 16,
           right: 0,
           bottom: 0,
         }}
       >
         {isStarted ? (
-          <FAB
-            icon={isPaused ? "play" : "pause"}
-            style={{
-              backgroundColor: "blue",
-            }}
-            onPress={() => setIsPaused(!isPaused)}
-          />
+          <Card style={{ flex: 5, marginRight: 8 }}>
+            <Card.Content>
+              <Title>Status</Title>
+              <Paragraph>Rudder angle: {rudderAngle}°</Paragraph>
+              {locationBuffer.length > 0 ? (
+                <Paragraph>
+                  Speed:{" "}
+                  {locationBuffer[locationBuffer.length - 1].coords.speed} m/s
+                </Paragraph>
+              ) : null}
+              {headingBuffer.length > 0 ? (
+                <Paragraph>
+                  Heading: {headingBuffer[headingBuffer.length - 1].toFixed(1)}°
+                </Paragraph>
+              ) : null}
+            </Card.Content>
+          </Card>
         ) : null}
-        <FAB
-          icon={isStarted ? "stop" : "play"}
-          style={{
-            marginTop: 10,
-            backgroundColor: isStarted ? "red" : "green",
-          }}
-          onPress={() => {
-            setIsStarted(!isStarted);
-            setIsPaused(false);
-          }}
-        />
+        <View style={{ flex: 1, marginLeft: 8, maxWidth: 55 }}>
+          {isStarted ? (
+            <FAB
+              icon={isPaused ? "play" : "pause"}
+              style={{
+                backgroundColor: "blue",
+              }}
+              onPress={() => setIsPaused(!isPaused)}
+            />
+          ) : null}
+          <FAB
+            icon={isStarted ? "stop" : "play"}
+            style={{
+              marginTop: 10,
+              backgroundColor: isStarted ? "red" : "green",
+            }}
+            onPress={() => {
+              setIsStarted(!isStarted);
+              setIsPaused(false);
+            }}
+          />
+        </View>
       </View>
       <Snackbar
         duration={2000}
