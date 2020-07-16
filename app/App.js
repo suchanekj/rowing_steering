@@ -35,6 +35,7 @@ export default function App() {
             initialRouteName="Row"
             shifting={true}
             backBehavior="initialRoute"
+            barStyle={{ backgroundColor: theme.colors.primary }}
           >
             <Tab.Screen
               name="Settings"

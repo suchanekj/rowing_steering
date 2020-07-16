@@ -17,6 +17,7 @@
     "expo-location": "~8.1.0",
     "expo-permissions": "~8.1.0",
     "expo-updates": "~0.2.1",
+    "geolib": "^3.3.1",
     "react": "16.9.0",
     "react-dom": "16.9.0",
     "react-native": "0.61.4",

@@ -1,7 +1,8 @@
 import React from "react";
 import { View } from "react-native";
 import MapView, { Polyline } from "react-native-maps";
-import { Subheading } from "react-native-paper";
+import { Paragraph, Divider } from "react-native-paper";
+import getPathLength from "geolib/es/getPathLength";
 
 export default function OutingDetail({ route }) {
   const { date, location, path } = route.params;
@@ -45,17 +46,28 @@ export default function OutingDetail({ route }) {
     longitudeDelta: 0.005 + range.longitude.max - range.longitude.min,
   };
 
+  const totalDistance = getPathLength(path.map(({ coords }) => coords));
+  const averageSpeed =
+    (totalDistance * 1000) /
+    (path[path.length - 1].timestamp - path[0].timestamp);
+
   return (
     <View style={{ flex: 1 }}>
-      <MapView style={{ flex: 1 }} initialRegion={initialRegion}>
+      <MapView style={{ flex: 2 }} initialRegion={initialRegion}>
         <Polyline
-          coordinates={path.coords}
+          coordinates={path.map((location) => location.coords)}
           strokeColor="#e30000"
           strokeWidth={6}
         />
       </MapView>
-      <View style={{ flex: 1 }}>
-        <Subheading>{location.region}</Subheading>
+      <Divider />
+      <View style={{ flex: 1, margin: 16 }}>
+        <Paragraph>
+          Location: {location.city}, {location.region}
+        </Paragraph>
+        <Paragraph>Time: {new Date(date).toString()}</Paragraph>
+        <Paragraph>Total distance: {totalDistance} m</Paragraph>
+        <Paragraph>Average speed: {averageSpeed.toFixed(2)} m/s</Paragraph>
       </View>
     </View>
   );

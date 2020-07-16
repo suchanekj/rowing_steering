@@ -21,8 +21,8 @@ import BLEManager from "react-native-ble-manager";
 
 import { SettingsContext } from "../utils";
 
-// const BleManagerModule = NativeModules.BleManager;
-// const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+const BleManagerModule = NativeModules.BleManager;
+const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 export default function Start() {
   const [isStarted, setIsStarted] = useState(false);
@@ -31,7 +31,6 @@ export default function Start() {
   const [locationBuffer, setLocationBuffer] = useState([]);
   const [headingBuffer, setHeadingBuffer] = useState([]);
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [subscriptions, setSubscriptions] = useState([]);
   const [error, setError] = useState({ status: false, message: "" });
   const [rudderAngle, setRudderAngle] = useState(90);
 
@@ -74,11 +73,13 @@ export default function Start() {
           setHeadingBuffer((headingBuffer) => [...headingBuffer, trueHeading]);
         }
       );
-      setSubscriptions([locationSubscription, headingSubscription]);
+      return [locationSubscription, headingSubscription];
     }
     if (isStarted && !isPaused && permissionGranted) {
-      startTracking();
-      return () => subscriptions.map((subscription) => subscription.remove());
+      const subscriptions = startTracking();
+      return async () => {
+        (await subscriptions).map((subscription) => subscription.remove());
+      };
     }
   }, [isStarted, isPaused]);
 
@@ -233,7 +234,10 @@ export default function Start() {
               {locationBuffer.length > 0 ? (
                 <Paragraph>
                   Speed:{" "}
-                  {locationBuffer[locationBuffer.length - 1].coords.speed} m/s
+                  {locationBuffer[
+                    locationBuffer.length - 1
+                  ].coords.speed.toFixed(2)}{" "}
+                  m/s
                 </Paragraph>
               ) : null}
               {headingBuffer.length > 0 ? (
