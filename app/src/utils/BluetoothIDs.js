@@ -1,0 +1,11 @@
+export const SERVO_SERICE = "802af24b-b40a-488b-b740-4c0405c1f955";
+export const BATTERY_LEVEL_CHARACTERISTIC =
+  "27468c1f-2915-4b5a-ac6a-6efb97dd764e";
+export const RUDDER_ANGLE_CHARACTERISTIC =
+  "948c9983-d637-405b-be86-4565e3c0b7dd";
+
+export const CONTROLLER_SERVICE = "8be2ecbd-047b-4af5-99fc-ad5a571a99c8";
+export const RUDDER_CHANGE_CHARACTERISTIC =
+  "1aa10f81-2712-4eb1-a4fc-6c2b0ba74671";
+export const BATTERY_INFO_CHARACTERISTIC =
+  "3a7b1270-435a-4927-86fb-cd135bee2ca5";

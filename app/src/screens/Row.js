@@ -6,25 +6,27 @@ import {
   NativeModules,
   NativeEventEmitter,
 } from "react-native";
-import {
-  FAB,
-  Banner,
-  Snackbar,
-  Card,
-  Title,
-  Paragraph,
-} from "react-native-paper";
+import { FAB, Banner, Snackbar } from "react-native-paper";
 import MapView, { Polyline } from "react-native-maps";
 import * as Location from "expo-location";
 import AsyncStorage from "@react-native-community/async-storage";
 import BLEManager from "react-native-ble-manager";
 
+import { StatusCard } from "../components";
 import { SettingsContext } from "../utils";
+import {
+  SERVO_SERVICE,
+  BATTERY_LEVEL_CHARACTERISTIC,
+  RUDDER_ANGLE_CHARACTERISTIC,
+  CONTROLLER_SERVICE,
+  RUDDER_CHANGE_CHARACTERISTIC,
+  BATTERY_INFO_CHARACTERISTIC,
+} from "../utils/BluetoothIDs";
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
-export default function Start() {
+export default function Row() {
   const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [initialRegion, setInitialRegion] = useState(null);
@@ -33,6 +35,7 @@ export default function Start() {
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [error, setError] = useState({ status: false, message: "" });
   const [rudderAngle, setRudderAngle] = useState(90);
+  const [servoBatteryLevel, setServoBatteryLevel] = useState(0);
 
   const map = useRef(null);
 
@@ -83,24 +86,19 @@ export default function Start() {
     }
   }, [isStarted, isPaused]);
 
-  function handleControllerUpdate({
+  function handleBluetoothCharacteristicUpdate({
     value,
     peripheralID,
     characteristic,
     service,
   }) {
-    // Handle rudder change update
-    if (characteristic === RUDDER_CHANGE_CHARACTERISTIC) {
-      const data = Buffer.Buffer.from(value).readInt8;
-      let newRudderAngle = null;
-      if (data === 1) {
-        // Move rudder right
-        newRudderAngle = rudderAngle + 1;
-      } else {
-        // Move rudder left
-        newRudderAngle = rudderAngle - 1;
-      }
-      if (newRudderAngle && newRudderAngle >= 0 && newRudderAngle <= 180) {
+    // Handle controller characteristic updates here
+    if (
+      service === CONTROLLER_SERVICE &&
+      characteristic === RUDDER_CHANGE_CHARACTERISTIC
+    ) {
+      const newRudderAngle = Buffer.Buffer.from(value).readInt8();
+      if ([-45, -1, 1, 45].includes(newRudderAngle)) {
         setRudderAngle(newRudderAngle);
         BLEManager.write(
           settings.servo.id,
@@ -112,6 +110,19 @@ export default function Start() {
     }
 
     // Handle servo characteristic updates here
+    if (
+      service === SERVO_SERVICE &&
+      characteristic === BATTERY_LEVEL_CHARACTERISTIC
+    ) {
+      const newBatteryLevel = Buffer.Buffer.from(value).readInt8();
+      setServoBatteryLevel(newBatteryLevel);
+      BLEManager.write(
+        settings.controller.id,
+        CONTROLLER_SERVICE,
+        BATTERY_INFO_CHARACTERISTIC,
+        new Int8Array([newBatteryLevel])
+      );
+    }
   }
 
   useEffect(() => {
@@ -137,29 +148,44 @@ export default function Start() {
       storeOuting();
     }
 
-    // Start collecting readings from controller and sending data to servo
+    // Start collecting readings from servo and controller
     async function startControl() {
+      await BLEManager.startNotification(
+        settings.servo.id,
+        SERVO_SERVICE,
+        BATTERY_LEVEL_CHARACTERISTIC
+      );
       await BLEManager.startNotification(
         settings.controller.id,
         CONTROLLER_SERVICE,
         RUDDER_CHANGE_CHARACTERISTIC
       );
+
       bleManagerEmitter.addListener(
         "BleManagerDidUpdateValueForCharacteristic",
-        handleControllerUpdate
+        handleBluetoothCharacteristicUpdate
       );
     }
     if (isStarted && settings.mode === "manual") {
       try {
         startControl();
-        return async () =>
-          BLEManager.stopNotification(
+        return async () => {
+          await BLEManager.stopNotification(
+            settings.servo.id,
+            SERVO_SERVICE,
+            BATTERY_LEVEL_CHARACTERISTIC
+          );
+          await BLEManager.stopNotification(
             settings.controller.id,
             CONTROLLER_SERVICE,
             RUDDER_CHANGE_CHARACTERISTIC
           );
+        };
       } catch {
-        setError({ status: true, message: "Error: cannot start controller" });
+        setError({
+          status: true,
+          message: "Error: cannot start bluetooth devices",
+        });
       }
     }
   }, [isStarted]);
@@ -227,26 +253,20 @@ export default function Start() {
         }}
       >
         {isStarted ? (
-          <Card style={{ flex: 5, marginRight: 8 }}>
-            <Card.Content>
-              <Title>Status</Title>
-              <Paragraph>Rudder angle: {rudderAngle}°</Paragraph>
-              {locationBuffer.length > 0 ? (
-                <Paragraph>
-                  Speed:{" "}
-                  {locationBuffer[
-                    locationBuffer.length - 1
-                  ].coords.speed.toFixed(2)}{" "}
-                  m/s
-                </Paragraph>
-              ) : null}
-              {headingBuffer.length > 0 ? (
-                <Paragraph>
-                  Heading: {headingBuffer[headingBuffer.length - 1].toFixed(1)}°
-                </Paragraph>
-              ) : null}
-            </Card.Content>
-          </Card>
+          <StatusCard
+            batteryLevel={servoBatteryLevel}
+            rudderAngle={rudderAngle}
+            speed={
+              locationBuffer.length > 0
+                ? locationBuffer[locationBuffer.length - 1].coords.speed
+                : null
+            }
+            heading={
+              headingBuffer.length > 0
+                ? headingBuffer[headingBuffer.length - 1]
+                : null
+            }
+          />
         ) : null}
         <View style={{ flex: 1, marginLeft: 8, maxWidth: 55 }}>
           {isStarted ? (
