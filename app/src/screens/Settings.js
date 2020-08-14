@@ -111,6 +111,11 @@ export default function Settings() {
         status: true,
         message: "Must connect both a controller and servo",
       });
+    } else if (value === "auto" && !settings.servo) {
+      setError({
+        status: true,
+        message: "Must connect a servo",
+      });
     } else {
       setSettings((settings) => ({ ...settings, mode: value }));
     }
@@ -132,6 +137,11 @@ export default function Settings() {
             style={{ marginHorizontal: 8 }}
             label="Manual"
             value="manual"
+          />
+          <RadioButton.Item
+            style={{ marginHorizontal: 8 }}
+            label="Automatic"
+            value="auto"
           />
         </RadioButton.Group>
       </List.Section>

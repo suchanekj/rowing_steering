@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-community/async-storage";
 import BLEManager from "react-native-ble-manager";
 
 import { StatusCard } from "../components";
-import { SettingsContext } from "../utils";
+import { SettingsContext, AutomaticController } from "../utils";
 import {
   SERVO_SERVICE,
   BATTERY_LEVEL_CHARACTERISTIC,
@@ -25,6 +25,8 @@ import {
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+
+const autoController = new AutomaticController();
 
 export default function Row() {
   const [isStarted, setIsStarted] = useState(false);
@@ -74,6 +76,15 @@ export default function Row() {
       const headingSubscription = await Location.watchHeadingAsync(
         ({ trueHeading }) => {
           setHeadingBuffer((headingBuffer) => [...headingBuffer, trueHeading]);
+          if (settings.mode === "auto") {
+            setRudderAngle(
+              autoController.update(
+                trueHeading,
+                locationBuffer[locationBuffer.length - 1].coords,
+                Date.now()
+              )
+            );
+          }
         }
       );
       return [locationSubscription, headingSubscription];
@@ -100,12 +111,6 @@ export default function Row() {
       const newRudderAngle = Buffer.Buffer.from(value).readInt8();
       if ([-45, -1, 1, 45].includes(newRudderAngle)) {
         setRudderAngle(newRudderAngle);
-        BLEManager.write(
-          settings.servo.id,
-          SERVO_SERVICE,
-          RUDDER_ANGLE_CHARACTERISTIC,
-          new Int8Array([newRudderAngle])
-        );
       }
     }
 
@@ -116,14 +121,30 @@ export default function Row() {
     ) {
       const newBatteryLevel = Buffer.Buffer.from(value).readInt8();
       setServoBatteryLevel(newBatteryLevel);
+    }
+  }
+
+  useEffect(() => {
+    if (settings.servo) {
+      BLEManager.write(
+        settings.servo.id,
+        SERVO_SERVICE,
+        RUDDER_ANGLE_CHARACTERISTIC,
+        new Int8Array([rudderAngle])
+      );
+    }
+  }, [rudderAngle]);
+
+  useEffect(() => {
+    if (settings.controller) {
       BLEManager.write(
         settings.controller.id,
         CONTROLLER_SERVICE,
         BATTERY_INFO_CHARACTERISTIC,
-        new Int8Array([newBatteryLevel])
+        new Int8Array([servoBatteryLevel])
       );
     }
-  }
+  }, [servoBatteryLevel]);
 
   useEffect(() => {
     // Save location data as an outing and reset locationBuffer
@@ -149,44 +170,61 @@ export default function Row() {
     }
 
     // Start collecting readings from servo and controller
-    async function startControl() {
+    async function startServo() {
       await BLEManager.startNotification(
         settings.servo.id,
         SERVO_SERVICE,
         BATTERY_LEVEL_CHARACTERISTIC
       );
+    }
+
+    async function startController() {
       await BLEManager.startNotification(
         settings.controller.id,
         CONTROLLER_SERVICE,
         RUDDER_CHANGE_CHARACTERISTIC
       );
+    }
+
+    if (isStarted && settings.mode !== "tracking") {
+      try {
+        startServo();
+      } catch {
+        setError({
+          status: true,
+          message: "Error: cannot start servo",
+        });
+        return;
+      }
+      if (settings.mode === "manual") {
+        try {
+          startController();
+        } catch {
+          setError({
+            status: true,
+            message: "Error: cannot start controller",
+          });
+          return;
+        }
+      }
 
       bleManagerEmitter.addListener(
         "BleManagerDidUpdateValueForCharacteristic",
         handleBluetoothCharacteristicUpdate
       );
-    }
-    if (isStarted && settings.mode === "manual") {
-      try {
-        startControl();
-        return async () => {
-          await BLEManager.stopNotification(
-            settings.servo.id,
-            SERVO_SERVICE,
-            BATTERY_LEVEL_CHARACTERISTIC
-          );
-          await BLEManager.stopNotification(
-            settings.controller.id,
-            CONTROLLER_SERVICE,
-            RUDDER_CHANGE_CHARACTERISTIC
-          );
-        };
-      } catch {
-        setError({
-          status: true,
-          message: "Error: cannot start bluetooth devices",
-        });
-      }
+
+      return async () => {
+        await BLEManager.stopNotification(
+          settings.servo.id,
+          SERVO_SERVICE,
+          BATTERY_LEVEL_CHARACTERISTIC
+        );
+        await BLEManager.stopNotification(
+          settings.controller.id,
+          CONTROLLER_SERVICE,
+          RUDDER_CHANGE_CHARACTERISTIC
+        );
+      };
     }
   }, [isStarted]);
 
