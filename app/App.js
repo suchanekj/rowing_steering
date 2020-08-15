@@ -4,6 +4,7 @@ import { createMaterialBottomTabNavigator } from "@react-navigation/material-bot
 import { Provider as ThemeProvider } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import BLEManager from "react-native-ble-manager";
+import "react-native-gesture-handler";
 
 import { Settings, Row, History } from "./src/screens";
 import { theme, SettingsContext } from "./src/utils";

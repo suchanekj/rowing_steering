@@ -18,7 +18,12 @@
     },
     "android": {
       "package": "com.hackbridge.buccaneer",
-      "versionCode": 1
+      "versionCode": 1,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDzu66--8Ir9DkwSBq2MRG-pBb_uHOz_14"
+        }
+      }
     },
     "entryPoint": "node_modules/expo/AppEntry.js"
   }
