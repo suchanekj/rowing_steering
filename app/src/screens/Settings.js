@@ -12,7 +12,7 @@ import {
 } from "react-native-paper";
 import BLEManager from "react-native-ble-manager";
 
-import { SettingsContext } from "../utils";
+import { SettingsContext, bleManagerEmitter } from "../utils";
 
 const DialogWithRadioBtns = ({
   options,
@@ -22,9 +22,9 @@ const DialogWithRadioBtns = ({
   cancel,
   confirm,
 }) => {
-  function renderOption(option) {
+  function renderOption(option, key) {
     return (
-      <TouchableRipple onPress={() => setSelectedOption(option)}>
+      <TouchableRipple key={key} onPress={() => setSelectedOption(option)}>
         <View
           style={{
             flexDirection: "row",
@@ -44,7 +44,7 @@ const DialogWithRadioBtns = ({
               paddingLeft: 8,
             }}
           >
-            {option.name}
+            {option.id}
           </Subheading>
         </View>
       </TouchableRipple>
@@ -57,7 +57,9 @@ const DialogWithRadioBtns = ({
         <Dialog.Title>Select device</Dialog.Title>
         <Dialog.ScrollArea style={{ maxHeight: 170, paddingHorizontal: 0 }}>
           <ScrollView>
-            <View>{options.map((option) => renderOption(option))}</View>
+            <View>
+              {options.map((option) => renderOption(option, option.id))}
+            </View>
           </ScrollView>
         </Dialog.ScrollArea>
         <Dialog.Actions>
@@ -70,12 +72,19 @@ const DialogWithRadioBtns = ({
 };
 
 export default function Settings() {
-  const [scanningForController, setScanningForController] = useState(false);
-  const [scanningForServo, setScanningForServo] = useState(false);
+  const [scanningFor, setScanningFor] = useState(null);
   const [peripherals, setPeripherals] = useState([]);
   const [error, setError] = useState({ status: false, message: "" });
 
   const { settings, setSettings } = useContext(SettingsContext);
+
+  useEffect(() => {
+    bleManagerEmitter.addListener("BleManagerStopScan", async () => {
+      // Scanning is stopped
+      const peripherals = await BLEManager.getDiscoveredPeripherals();
+      setPeripherals(peripherals);
+    });
+  }, []);
 
   useEffect(() => {
     async function connectToController() {
@@ -149,59 +158,43 @@ export default function Settings() {
         <Button
           style={{ marginVertical: 4, marginHorizontal: 8 }}
           mode="outlined"
-          loading={scanningForController}
+          loading={scanningFor === "controller"}
           onPress={async () => {
-            setScanningForController(true);
+            setScanningFor("controller");
             await BLEManager.scan([], 5, true);
-            setPeripherals(await BLEManager.getDiscoveredPeripherals());
           }}
         >
           {settings.controller ? "Controller connected" : "Connect controller"}
         </Button>
-        <DialogWithRadioBtns
-          options={peripherals}
-          selectedOption={settings.controller}
-          setSelectedOption={(peripheral) =>
-            setSettings((settings) => ({ ...settings, controller: peripheral }))
-          }
-          visible={peripherals.length > 0}
-          cancel={() => {
-            setPeripherals([]);
-            setSettings((settings) => ({ ...settings, controller: null }));
-            setScanningForController(false);
-          }}
-          confirm={() => {
-            setPeripherals([]);
-            setScanningForController(false);
-          }}
-        />
         <Button
           style={{ marginVertical: 4, marginHorizontal: 8 }}
           mode="outlined"
-          loading={scanningForServo}
+          loading={scanningFor === "servo"}
           onPress={async () => {
-            setScanningForServo(true);
+            setScanningFor("servo");
             await BLEManager.scan([], 5, true);
-            setPeripherals(await BLEManager.getDiscoveredPeripherals());
           }}
         >
           {settings.servo ? "Servo connected" : "Connect servo"}
         </Button>
         <DialogWithRadioBtns
           options={peripherals}
-          selectedOption={settings.servo}
+          selectedOption={settings[scanningFor]}
           setSelectedOption={(peripheral) =>
-            setSettings((settings) => ({ ...settings, servo: peripheral }))
+            setSettings((settings) => ({
+              ...settings,
+              [scanningFor]: peripheral,
+            }))
           }
-          visible={peripherals.length > 0}
+          visible={scanningFor !== null && peripherals.length > 0}
           cancel={() => {
             setPeripherals([]);
-            setSettings((settings) => ({ ...settings, servo: null }));
-            setScanningForServo(false);
+            setSettings((settings) => ({ ...settings, [scanningFor]: null }));
+            setScanningFor(null);
           }}
           confirm={() => {
             setPeripherals([]);
-            setScanningForServo(false);
+            setScanningFor(null);
           }}
         />
       </List.Section>

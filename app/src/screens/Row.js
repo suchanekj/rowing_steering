@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import {
-  View,
-  Linking,
-  Platform,
-  NativeModules,
-  NativeEventEmitter,
-} from "react-native";
+import { View, Linking, Platform } from "react-native";
 import { FAB, Banner, Snackbar } from "react-native-paper";
 import MapView, { Polyline } from "react-native-maps";
 import * as Location from "expo-location";
@@ -13,7 +7,11 @@ import AsyncStorage from "@react-native-community/async-storage";
 import BLEManager from "react-native-ble-manager";
 
 import { StatusCard } from "../components";
-import { SettingsContext, AutomaticController } from "../utils";
+import {
+  SettingsContext,
+  AutomaticController,
+  bleManagerEmitter,
+} from "../utils";
 import {
   SERVO_SERVICE,
   BATTERY_LEVEL_CHARACTERISTIC,
@@ -22,9 +20,6 @@ import {
   RUDDER_CHANGE_CHARACTERISTIC,
   BATTERY_INFO_CHARACTERISTIC,
 } from "../utils/BluetoothIDs";
-
-const BleManagerModule = NativeModules.BleManager;
-const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
 
 const autoController = new AutomaticController();
 
@@ -37,7 +32,7 @@ export default function Row() {
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [error, setError] = useState({ status: false, message: "" });
   const [rudderAngle, setRudderAngle] = useState(90);
-  const [servoBatteryLevel, setServoBatteryLevel] = useState(0);
+  const [servoBatteryLevel, setServoBatteryLevel] = useState(null);
 
   const map = useRef(null);
 
