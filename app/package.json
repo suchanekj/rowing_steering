@@ -20,7 +20,7 @@
     "geolib": "^3.3.1",
     "react": "16.9.0",
     "react-dom": "16.9.0",
-    "react-native": "0.61.4",
+    "react-native": "0.62.3",
     "react-native-ble-manager": "^7.3.1",
     "react-native-gesture-handler": "^1.6.1",
     "react-native-maps": "git+https://git@github.com/react-native-community/react-native-maps.git",
